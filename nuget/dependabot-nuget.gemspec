@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "bundler"
+
 Gem::Specification.new do |spec|
   common_gemspec =
     Bundler.load_gemspec_uncached("../common/dependabot-common.gemspec")

@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "bundler"
 require "find"
 
 Gem::Specification.new do |spec|
