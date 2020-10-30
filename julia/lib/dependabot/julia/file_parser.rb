@@ -14,6 +14,7 @@ module Dependabot
       def parse
         dependency_set = DependencySet.new
         dependency_set += all_projects_dependencies
+        dependency_set += all_manifests_dependencies
         dependency_set.dependencies
       end
 
@@ -31,6 +32,14 @@ module Dependabot
         dependencies
       end
 
+      def all_manifests_dependencies
+        dependencies = DependencySet.new
+        manifest_files.each do |file|
+          dependencies += manifest_dependencies(file)
+        end
+        dependencies
+      end
+
       def project_dependencies(file)
         project = parsed_file(file)
         deps = project["deps"] || {}
@@ -41,7 +50,7 @@ module Dependabot
             name: dep,
             package_manager: "julia",
             requirements: [{
-              requirement: canonicalize_compat(compat[dep]),
+              requirement: compat[dep],
               file: file.name,
               groups: [],
               source: nil,
@@ -54,14 +63,55 @@ module Dependabot
         dependencies
       end
 
-      def canonicalize_compat(compat)
-        compat = compat.strip
-        compat = "^#{compat}" if compat.start_with?(/\d/)
-        compat
+      def manifest_dependencies(file)
+        manifest = parsed_file(file)
+        dependencies = DependencySet.new
+        manifest.each do |dep, entries|
+          entry = entries.first
+          version = entry["version"]
+          next unless version
+
+          dependencies << Dependency.new(
+            name: dep,
+            version: version,
+            package_manager: "julia",
+            requirements: [{
+              requirement: version,
+              file: file.name,
+              groups: [],
+              source: manifest_dependency_source(entry),
+              metadata: {
+                uuid: entry["uuid"]
+              }
+            }]
+          )
+        end
+        dependencies
+      end
+
+      def manifest_dependency_source(entry)
+        url = entry["repo-url"]
+        path = entry["path"]
+        if url
+          {
+            type: "git",
+            url: url,
+            ref: entry["repo-rev"]
+          }
+        elsif path
+          {
+            type: "path",
+            path: path
+          }
+        end
       end
 
       def project_files
         dependency_files.select { |file| file.name == "Project.toml" }
+      end
+
+      def manifest_files
+        dependency_files.select { |file| file.name == "Manifest.toml" }
       end
 
       def parsed_file(file)
