@@ -8,7 +8,7 @@ require "dependabot/julia/file_parser"
 # require "dependabot/julia/file_updater"
 # require "dependabot/julia/metadata_finder"
 # require "dependabot/julia/requirement"
-# require "dependabot/julia/version"
+require "dependabot/julia/version"
 
 require "dependabot/pull_request_creator/labeler"
 Dependabot::PullRequestCreator::Labeler.
