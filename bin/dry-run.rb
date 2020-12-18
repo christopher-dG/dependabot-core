@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+# coding: utf-8
 # frozen_string_literal: true
 
 # This script is does a full update run for a given repo (optionally for a
@@ -355,6 +356,8 @@ parser = Dependabot::FileParsers.for_package_manager($package_manager).new(
 )
 
 dependencies = cached_read("dependencies") { parser.parse }
+dependencies.each { |d| puts d.to_h }
+raise "done"
 
 if $options[:dependency_name].nil?
   dependencies.select!(&:top_level?)
